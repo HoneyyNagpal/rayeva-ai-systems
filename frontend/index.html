@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rayeva – AI Systems Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #1a6b4a;
+      --green-light: #2d8a62;
+      --green-pale: #e8f5ee;
+      --cream: #faf8f3;
+      --ink: #1c1c1c;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --white: #ffffff;
+      --accent: #d4a843;
+      --red: #c0392b;
+      --radius: 12px;
+      --shadow: 0 2px 16px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      background: var(--green);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand {
+      font-family: 'DM Serif Display', serif;
+      color: white;
+      font-size: 1.4rem;
+      letter-spacing: -0.5px;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-tabs { display: flex; gap: 4px; }
+    .nav-tab {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .nav-tab:hover { background: rgba(255,255,255,0.1); color: white; }
+    .nav-tab.active { background: rgba(255,255,255,0.15); color: white; }
+
+    /* MAIN */
+    main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* PANELS */
+    .panel { display: none; animation: fadeIn 0.3s ease; }
+    .panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .panel-header { margin-bottom: 1.5rem; }
+    .panel-header h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      color: var(--ink);
+    }
+    .panel-header p { color: var(--muted); margin-top: 4px; font-size: 0.9rem; }
+
+    /* CARDS */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--green); }
+
+    /* FORM ELEMENTS */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    input, textarea, select {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      background: var(--cream);
+      color: var(--ink);
+      transition: border-color 0.2s;
+      outline: none;
+      width: 100%;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--green-light); background: white; }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* BUTTON */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: var(--green-light); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: var(--cream);
+      color: var(--ink);
+      border: 1.5px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--green-pale); border-color: var(--green); color: var(--green); }
+
+    /* RESULT */
+    .result-area {
+      background: #f8fdf9;
+      border: 1.5px solid #c3e6cd;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .result-pill {
+      background: var(--green-pale);
+      border: 1px solid #b8dfc5;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      color: var(--green);
+      font-weight: 500;
+      display: inline-block;
+      margin: 3px;
+    }
+    .result-tag {
+      background: #fff8e7;
+      border: 1px solid #e8d5a0;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      color: #8a6a10;
+      font-weight: 500;
+      display: inline-block;
+      margin: 3px;
+    }
+    .confidence-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--green-light));
+      border-radius: 4px;
+      transition: width 0.8s ease;
+    }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { font-size: 0.85rem; color: var(--muted); }
+    .stat-value { font-weight: 600; color: var(--ink); }
+
+    /* JSON VIEWER */
+    .json-block {
+      background: #1c1c1c;
+      color: #a8e6cf;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      overflow-x: auto;
+      margin-top: 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    /* LOADING */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* CHAT */
+    .chat-container {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: white;
+      overflow: hidden;
+    }
+    .chat-messages { height: 340px; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 10px; }
+    .chat-bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .chat-bubble.user { background: var(--green); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .chat-bubble.bot { background: var(--cream); color: var(--ink); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+    .chat-bubble.escalation { background: #fdf2f2; border-color: #f5c0c0; }
+    .escalation-badge {
+      display: inline-block;
+      background: var(--red);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
+    .chat-input-row { display: flex; gap: 8px; padding: 1rem; border-top: 1px solid var(--border); }
+    .chat-input-row input { flex: 1; }
+
+    /* PROPOSAL TABLE */
+    .proposal-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .proposal-table th { background: var(--green-pale); color: var(--green); padding: 8px 12px; text-align: left; font-weight: 600; }
+    .proposal-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .proposal-table tr:last-child td { border-bottom: none; }
+
+    /* IMPACT METRICS */
+    .impact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .impact-card {
+      background: var(--green-pale);
+      border: 1px solid #b8dfc5;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .impact-num { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--green); }
+    .impact-label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+    .error-msg { color: var(--red); font-size: 0.85rem; margin-top: 8px; }
+
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .result-grid { grid-template-columns: 1fr; }
+      .impact-grid { grid-template-columns: 1fr 1fr; }
+      .nav-tabs { gap: 2px; }
+      .nav-tab { padding: 8px 10px; font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Rayeva <span>AI</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('category', this)">Categorize</button>
+    <button class="nav-tab" onclick="switchTab('proposal', this)">Proposals</button>
+    <button class="nav-tab" onclick="switchTab('impact', this)">Impact</button>
+    <button class="nav-tab" onclick="switchTab('support', this)">Support</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- MODULE 1: CATEGORY -->
+  <div class="panel active" id="panel-category">
+    <div class="panel-header">
+      <h2>AI Category & Tag Generator</h2>
+      <p>Automatically classify products and generate SEO tags with sustainability filters</p>
+    </div>
+
+    <div class="card">
+      <h3>Product Information</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Product Name *</label>
+          <input type="text" id="cat-name" placeholder="e.g. Bamboo Toothbrush Set" />
+        </div>
+        <div class="form-group">
+          <label>Brand</label>
+          <input type="text" id="cat-brand" placeholder="e.g. EcoRoot" />
+        </div>
+        <div class="form-group">
+          <label>Price (₹)</label>
+          <input type="number" id="cat-price" placeholder="299" />
+        </div>
+        <div class="form-group">
+          <label>Materials</label>
+          <input type="text" id="cat-materials" placeholder="e.g. bamboo, charcoal bristles" />
+        </div>
+        <div class="form-group full">
+          <label>Product Description *</label>
+          <textarea id="cat-desc" placeholder="Describe the product in detail — what it is, how it's used, what it's made from, and any sustainability claims..."></textarea>
+        </div>
+      </div>
+      <div style="margin-top: 1rem; display: flex; gap: 8px;">
+        <button class="btn" onclick="classifyProduct()">
+          <span id="cat-btn-text">Generate Classification</span>
+          <span id="cat-spinner" class="spinner" style="display:none"></span>
+        </button>
+        <button class="btn btn-secondary" onclick="fillCategoryDemo()">Try demo</button>
+      </div>
+      <p id="cat-error" class="error-msg" style="display:none"></p>
+    </div>
+
+    <div id="cat-result" style="display:none">
+      <div class="card">
+        <h3>Classification Result</h3>
+        <div class="result-grid">
+          <div>
+            <div style="font-size:0.78rem; color:var(--muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Primary Category</div>
+            <div id="cat-primary" style="font-size:1.1rem; font-weight:600; margin-top:4px; color:var(--green)"></div>
+            <div id="cat-sub" style="font-size:0.85rem; color:var(--muted); margin-top:2px"></div>
+          </div>
+          <div>
+            <div style="font-size:0.78rem; color:var(--muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Confidence</div>
+            <div id="cat-conf-text" style="font-size:1.1rem; font-weight:600; margin-top:4px;"></div>
+            <div class="confidence-bar"><div id="cat-conf-bar" class="confidence-fill" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <div style="font-size:0.78rem; color:var(--muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px; margin-bottom:6px;">SEO Tags</div>
+          <div id="cat-tags"></div>
+        </div>
+        <div style="margin-top:1rem;">
+          <div style="font-size:0.78rem; color:var(--muted); text-transform:uppercase; font-weight:600; letter-spacing:0.5px; margin-bottom:6px;">Sustainability Filters</div>
+          <div id="cat-filters"></div>
+        </div>
+        <div style="margin-top:1rem; padding:10px; background:var(--cream); border-radius:8px;">
+          <div style="font-size:0.78rem; color:var(--muted); font-weight:600; margin-bottom:4px;">AI Reasoning</div>
+          <div id="cat-reasoning" style="font-size:0.85rem; color:var(--ink); line-height:1.5;"></div>
+        </div>
+        <div id="cat-json-block" class="json-block"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 2: PROPOSAL -->
+  <div class="panel" id="panel-proposal">
+    <div class="panel-header">
+      <h2>B2B Proposal Generator</h2>
+      <p>Generate tailored sustainable product proposals for corporate clients</p>
+    </div>
+
+    <div class="card">
+      <h3>Client Brief</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Client / Company Name *</label>
+          <input type="text" id="prop-client" placeholder="e.g. Infosys Foundation" />
+        </div>
+        <div class="form-group">
+          <label>Industry *</label>
+          <input type="text" id="prop-industry" placeholder="e.g. IT, Healthcare, FMCG" />
+        </div>
+        <div class="form-group">
+          <label>Total Budget (₹) *</label>
+          <input type="number" id="prop-budget" placeholder="50000" min="5000" />
+        </div>
+        <div class="form-group">
+          <label>Approx. Recipients</label>
+          <input type="number" id="prop-recipients" placeholder="100" />
+        </div>
+        <div class="form-group">
+          <label>Sustainability Priority</label>
+          <select id="prop-sus">
+            <option value="high">High – eco-first</option>
+            <option value="medium" selected>Medium – balanced</option>
+            <option value="low">Low – cost-first</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Use Case</label>
+          <input type="text" id="prop-usecase" placeholder="e.g. employee gifting, Diwali kits" />
+        </div>
+        <div class="form-group full">
+          <label>Additional Preferences</label>
+          <textarea id="prop-prefs" placeholder="Any specific requirements, items to avoid, themes..." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+      <div style="margin-top:1rem; display:flex; gap:8px;">
+        <button class="btn" onclick="generateProposal()">
+          <span id="prop-btn-text">Generate Proposal</span>
+          <span id="prop-spinner" class="spinner" style="display:none"></span>
+        </button>
+        <button class="btn btn-secondary" onclick="fillProposalDemo()">Try demo</button>
+      </div>
+      <p id="prop-error" class="error-msg" style="display:none"></p>
+    </div>
+
+    <div id="prop-result" style="display:none">
+      <div class="card">
+        <h3 id="prop-title"></h3>
+        <p id="prop-summary" style="color:var(--muted); font-size:0.88rem; margin-bottom:1rem;"></p>
+
+        <table class="proposal-table">
+          <thead>
+            <tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+          </thead>
+          <tbody id="prop-table-body"></tbody>
+        </table>
+
+        <div style="margin-top:1.5rem;">
+          <h3 style="margin-bottom:0.75rem;">Budget Breakdown</h3>
+          <div id="prop-budget-rows"></div>
+        </div>
+
+        <div style="margin-top:1.5rem;">
+          <h3 style="margin-bottom:0.75rem;">Impact Positioning</h3>
+          <div id="prop-impact-statement" style="background:var(--green-pale); border-radius:8px; padding:12px; font-size:0.88rem; line-height:1.6; color:var(--green); margin-bottom:1rem;"></div>
+          <div id="prop-key-messages"></div>
+        </div>
+
+        <div style="margin-top:1rem; padding:10px; background:#fffbf0; border-radius:8px; border: 1px solid #f0e0a0;">
+          <div style="font-size:0.75rem; font-weight:600; color:#8a6a10; margin-bottom:4px;">SALES NOTES</div>
+          <div id="prop-sales-notes" style="font-size:0.85rem;"></div>
+        </div>
+
+        <div style="margin-top:1rem;">
+          <button onclick="togglePropJson()" class="btn btn-secondary" style="font-size:0.78rem; padding:6px 14px;">{ } View Structured JSON Output</button>
+          <div id="prop-json-block" class="json-block" style="display:none; margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 3: IMPACT -->
+  <div class="panel" id="panel-impact">
+    <div class="panel-header">
+      <h2>Impact Report Generator</h2>
+      <p>Calculate and narrate the environmental impact of an order</p>
+    </div>
+
+    <div class="card">
+      <h3>Order Details</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Order ID *</label>
+          <input type="text" id="imp-orderid" placeholder="e.g. ORD-20250310" />
+        </div>
+        <div class="form-group">
+          <label>Order Value (₹)</label>
+          <input type="number" id="imp-value" placeholder="4500" />
+        </div>
+        <div class="form-group full">
+          <label>Products JSON (array) *</label>
+          <textarea id="imp-products" style="min-height:120px; font-family:monospace; font-size:0.8rem;" placeholder='[
+  { "name": "Bamboo Notebook", "quantity": 10, "tags": ["plastic-free", "recycled-materials"] },
+  { "name": "Steel Bottle", "quantity": 5, "tags": ["plastic-free", "zero-waste", "locally-sourced"] }
+]'></textarea>
+        </div>
+      </div>
+      <div style="margin-top:1rem; display:flex; gap:8px;">
+        <button class="btn" onclick="generateImpact()">
+          <span id="imp-btn-text">Generate Report</span>
+          <span id="imp-spinner" class="spinner" style="display:none"></span>
+        </button>
+        <button class="btn btn-secondary" onclick="fillImpactDemo()">Try demo</button>
+      </div>
+      <p id="imp-error" class="error-msg" style="display:none"></p>
+    </div>
+
+    <div id="imp-result" style="display:none">
+      <div class="card">
+        <h3>Impact Metrics</h3>
+        <div class="impact-grid" id="imp-metrics-grid"></div>
+        <div style="margin-top:1.5rem; background:var(--green-pale); border-radius:10px; padding:1rem; line-height:1.7; color:var(--green); font-size:0.92rem;" id="imp-statement"></div>
+        <div style="margin-top:0.75rem; font-size:0.8rem; color:var(--muted); font-style:italic;" id="imp-methodology"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 4: SUPPORT -->
+  <div class="panel" id="panel-support">
+    <div class="panel-header">
+      <h2>WhatsApp Support Bot</h2>
+      <p>AI support agent with real order data — try asking about order status or returns</p>
+    </div>
+
+    <div class="card" style="padding:0;">
+      <div style="padding:1rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px;">
+        <div style="width:38px; height:38px; background:var(--green); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">🌿</div>
+        <div>
+          <div style="font-weight:600; font-size:0.9rem;">Riya · Rayeva Support</div>
+          <div style="font-size:0.75rem; color:var(--muted);">Typically replies instantly</div>
+        </div>
+        <div style="margin-left:auto; font-size:0.75rem; color:var(--muted);">
+          Test orders: ORD-1001, ORD-1002, ORD-1003, ORD-1004
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-bubble bot">
+          Hi there! I'm Riya from Rayeva support. I can help with order status, returns, and general questions. What can I do for you?
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Type a message... (e.g. What's the status of ORD-1002?)" onkeydown="if(event.key==='Enter') sendMessage()" />
+        <button class="btn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+    <div style="margin-top:0.75rem; display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" style="font-size:0.8rem; padding:6px 12px;" onclick="setChat('Where is my order ORD-1002?')">Order status →</button>
+      <button class="btn btn-secondary" style="font-size:0.8rem; padding:6px 12px;" onclick="setChat('I want to return my order ORD-1001')">Return request →</button>
+      <button class="btn btn-secondary" style="font-size:0.8rem; padding:6px 12px;" onclick="setChat('What is your return policy?')">Return policy →</button>
+      <button class="btn btn-secondary" style="font-size:0.8rem; padding:6px 12px;" onclick="setChat('I need a refund for ORD-1004, this is urgent!')">Escalation test →</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = "http://localhost:4000/api";
+
+// Conversation history for support bot
+let chatHistory = [];
+let customerId = "CUST-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+
+// Tab switching
+function switchTab(tab, el) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("panel-" + tab).classList.add("active");
+  el.classList.add("active");
+}
+
+// ---- MODULE 1: CATEGORY ----
+function fillCategoryDemo() {
+  document.getElementById("cat-name").value = "Beeswax Wrap Set – 4 Pack";
+  document.getElementById("cat-brand").value = "GreenNest";
+  document.getElementById("cat-price").value = "450";
+  document.getElementById("cat-materials").value = "organic cotton, beeswax, jojoba oil, tree resin";
+  document.getElementById("cat-desc").value = "Reusable food wraps made from 100% organic cotton infused with sustainably sourced beeswax, jojoba oil, and tree resin. Replaces single-use cling film and plastic bags. Naturally antimicrobial, washable, and compostable at end of life. Available in 4 sizes. Perfect for wrapping cheese, bread, fruits, or covering bowls. Estimated to replace up to 700 plastic bags per set over its 1-year lifespan.";
+}
+
+async function classifyProduct() {
+  const name = document.getElementById("cat-name").value.trim();
+  const desc = document.getElementById("cat-desc").value.trim();
+  const errEl = document.getElementById("cat-error");
+  errEl.style.display = "none";
+
+  if (!name || !desc) { errEl.textContent = "Product name and description are required."; errEl.style.display = "block"; return; }
+
+  setLoading("cat", true);
+
+  try {
+    const body = {
+      name,
+      description: desc,
+      brand: document.getElementById("cat-brand").value,
+      price: document.getElementById("cat-price").value,
+      materials: document.getElementById("cat-materials").value,
+    };
+
+    const res = await fetch(`${API}/category/classify`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+
+    renderCategoryResult(data.data);
+  } catch (e) {
+    errEl.textContent = e.message; errEl.style.display = "block";
+  } finally {
+    setLoading("cat", false);
+  }
+}
+
+function renderCategoryResult(d) {
+  document.getElementById("cat-result").style.display = "block";
+  document.getElementById("cat-primary").textContent = d.primaryCategory;
+  document.getElementById("cat-sub").textContent = d.subCategory;
+  const pct = Math.round(d.confidence * 100);
+  document.getElementById("cat-conf-text").textContent = pct + "%";
+  setTimeout(() => document.getElementById("cat-conf-bar").style.width = pct + "%", 100);
+  document.getElementById("cat-tags").innerHTML = d.seoTags.map(t => `<span class="result-tag">#${t}</span>`).join("");
+  document.getElementById("cat-filters").innerHTML = d.sustainabilityFilters.map(f => `<span class="result-pill">✓ ${f}</span>`).join("") || "<span style='color:var(--muted);font-size:0.85rem;'>No sustainability filters matched</span>";
+  document.getElementById("cat-reasoning").textContent = d.reasoning;
+  document.getElementById("cat-json-block").textContent = JSON.stringify(d, null, 2);
+  document.getElementById("cat-result").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// ---- MODULE 2: PROPOSAL ----
+function fillProposalDemo() {
+  document.getElementById("prop-client").value = "Wipro Foundation";
+  document.getElementById("prop-industry").value = "Information Technology";
+  document.getElementById("prop-budget").value = "75000";
+  document.getElementById("prop-recipients").value = "150";
+  document.getElementById("prop-sus").value = "high";
+  document.getElementById("prop-usecase").value = "Employee sustainability day gifting";
+  document.getElementById("prop-prefs").value = "Prefer items that can be used daily in office or home. No food items. Focus on plastic-free alternatives.";
+}
+
+async function generateProposal() {
+  const errEl = document.getElementById("prop-error");
+  errEl.style.display = "none";
+
+  const clientName = document.getElementById("prop-client").value.trim();
+  const industry = document.getElementById("prop-industry").value.trim();
+  const budget = parseFloat(document.getElementById("prop-budget").value);
+
+  if (!clientName || !industry || !budget) { errEl.textContent = "Client name, industry, and budget are required."; errEl.style.display = "block"; return; }
+  if (budget < 5000) { errEl.textContent = "Minimum budget is ₹5,000"; errEl.style.display = "block"; return; }
+
+  setLoading("prop", true);
+
+  try {
+    const body = {
+      clientName, industry, budget,
+      recipients: document.getElementById("prop-recipients").value,
+      sustainabilityPriority: document.getElementById("prop-sus").value,
+      useCase: document.getElementById("prop-usecase").value,
+      preferences: document.getElementById("prop-prefs").value,
+    };
+
+    const res = await fetch(`${API}/proposal/generate`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+
+    renderProposalResult(data.data);
+  } catch (e) {
+    errEl.textContent = e.message; errEl.style.display = "block";
+  } finally {
+    setLoading("prop", false);
+  }
+}
+
+function renderProposalResult(d) {
+  document.getElementById("prop-result").style.display = "block";
+  document.getElementById("prop-title").textContent = d.proposalTitle;
+  document.getElementById("prop-summary").textContent = d.clientSummary;
+
+  const tbody = document.getElementById("prop-table-body");
+  tbody.innerHTML = d.productMix.map(p => `
+    <tr>
+      <td><strong>${p.productName}</strong><br><span style="font-size:0.75rem;color:var(--muted);">${p.rationale}</span></td>
+      <td>${p.quantity}</td>
+      <td>₹${p.unitPrice.toLocaleString()}</td>
+      <td><strong>₹${p.lineTotal.toLocaleString()}</strong></td>
+    </tr>
+  `).join("");
+
+  const b = d.budgetBreakdown;
+  document.getElementById("prop-budget-rows").innerHTML = [
+    ["Subtotal", `₹${b.subtotal.toLocaleString()}`],
+    ["Platform Fee (8%)", `₹${b.platformFee.toLocaleString()}`],
+    ["Shipping", b.estimatedShipping === 0 ? "Free" : `₹${b.estimatedShipping.toLocaleString()}`],
+    ["Total", `₹${b.total.toLocaleString()} (${b.budgetUtilization}% of budget)`],
+  ].map(([l, v], i) => `<div class="stat-row" style="${i===3?'font-weight:600;':''}"><span class="stat-label">${l}</span><span class="stat-value">${v}</span></div>`).join("");
+
+  const imp = d.impactPositioning;
+  document.getElementById("prop-impact-statement").textContent = imp.impactStatement;
+  document.getElementById("prop-key-messages").innerHTML = imp.keyMessages.map(m => `<div style="padding:6px 0; font-size:0.85rem; border-bottom:1px solid var(--border);">→ ${m}</div>`).join("");
+  document.getElementById("prop-sales-notes").textContent = d.salesNotes;
+  document.getElementById("prop-json-block").textContent = JSON.stringify(d, null, 2);
+
+  document.getElementById("prop-result").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// ---- MODULE 3: IMPACT ----
+function fillImpactDemo() {
+  document.getElementById("imp-orderid").value = "ORD-20250310-001";
+  document.getElementById("imp-value").value = "6720";
+  document.getElementById("imp-products").value = JSON.stringify([
+    { name: "Bamboo Notebook Set", quantity: 20, tags: ["plastic-free", "recycled-materials"] },
+    { name: "Steel Water Bottle", quantity: 15, tags: ["plastic-free", "zero-waste", "refillable"] },
+    { name: "Jute Shopping Bag", quantity: 30, tags: ["biodegradable", "locally-sourced", "fair-trade"] },
+    { name: "Seed Paper Pens", quantity: 50, tags: ["compostable", "zero-waste", "plastic-free"] }
+  ], null, 2);
+}
+
+async function generateImpact() {
+  const errEl = document.getElementById("imp-error");
+  errEl.style.display = "none";
+  const orderId = document.getElementById("imp-orderid").value.trim();
+  let products;
+  try { products = JSON.parse(document.getElementById("imp-products").value); } catch { errEl.textContent = "Invalid JSON in products field."; errEl.style.display = "block"; return; }
+  if (!orderId) { errEl.textContent = "Order ID is required."; errEl.style.display = "block"; return; }
+
+  setLoading("imp", true);
+
+  try {
+    const res = await fetch(`${API}/impact/report`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, products, orderValue: document.getElementById("imp-value").value })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    renderImpactResult(data.data);
+  } catch (e) {
+    errEl.textContent = e.message; errEl.style.display = "block";
+  } finally {
+    setLoading("imp", false);
+  }
+}
+
+function renderImpactResult(d) {
+  document.getElementById("imp-result").style.display = "block";
+  const m = d.metrics;
+  const grid = document.getElementById("imp-metrics-grid");
+  grid.innerHTML = [
+    [m.plasticFreeItems, "Plastic-Free Items"],
+    [m.plasticBottlesEquivalent, "Plastic Bottles Avoided"],
+    [m.co2AvoidedKg + "kg", "CO₂ Avoided"],
+    [m.treeDaysEquivalent + "d", "Tree-Days Equivalent"],
+    [m.localSourcingPercent + "%", "Locally Sourced"],
+    [m.compostableItems, "Compostable Items"],
+  ].map(([n, l]) => `<div class="impact-card"><div class="impact-num">${n}</div><div class="impact-label">${l}</div></div>`).join("");
+
+  document.getElementById("imp-statement").textContent = d.impactStatement;
+  document.getElementById("imp-methodology").textContent = d.methodology;
+  document.getElementById("imp-result").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// ---- MODULE 4: SUPPORT ----
+function setChat(msg) {
+  document.getElementById("chat-input").value = msg;
+  document.getElementById("chat-input").focus();
+}
+
+async function sendMessage() {
+  const input = document.getElementById("chat-input");
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = "";
+
+  appendBubble(msg, "user");
+
+  // Show typing indicator
+  const typingId = "typing-" + Date.now();
+  const typingEl = document.createElement("div");
+  typingEl.className = "chat-bubble bot";
+  typingEl.id = typingId;
+  typingEl.textContent = "Riya is typing...";
+  typingEl.style.opacity = "0.6";
+  document.getElementById("chat-messages").appendChild(typingEl);
+  scrollChat();
+
+  try {
+    const res = await fetch(`${API}/support/message`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg, customerId, conversationHistory: chatHistory })
+    });
+    const data = await res.json();
+
+    document.getElementById(typingId)?.remove();
+
+    if (!data.success) throw new Error(data.error);
+
+    const d = data.data;
+    chatHistory.push({ role: "user", content: msg });
+    chatHistory.push({ role: "assistant", content: d.reply });
+    if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
+
+    appendBubble(d.reply, d.requiresEscalation ? "bot escalation" : "bot", d.requiresEscalation);
+  } catch (e) {
+    document.getElementById(typingId)?.remove();
+    appendBubble("Sorry, I'm having trouble connecting right now. Please try again.", "bot");
+  }
+}
+
+function appendBubble(text, cls, isEscalation = false) {
+  const el = document.createElement("div");
+  el.className = "chat-bubble " + cls;
+  if (isEscalation) {
+    el.innerHTML = `<div class="escalation-badge">ESCALATING TO HUMAN</div><br>${text}`;
+  } else {
+    el.textContent = text;
+  }
+  document.getElementById("chat-messages").appendChild(el);
+  scrollChat();
+}
+
+function scrollChat() {
+  const c = document.getElementById("chat-messages");
+  c.scrollTop = c.scrollHeight;
+}
+
+// ---- UTILS ----
+function togglePropJson() {
+  const block = document.getElementById("prop-json-block");
+  block.style.display = block.style.display === "none" ? "block" : "none";
+}
+
+function setLoading(mod, on) {
+  document.getElementById(mod + "-btn-text").style.display = on ? "none" : "inline";
+  document.getElementById(mod + "-spinner").style.display = on ? "inline-block" : "none";
+  document.querySelectorAll(".btn").forEach(b => b.disabled = on);
+}
+</script>
+</body>
+</html>
