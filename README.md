@@ -7,7 +7,7 @@
 
 ## Modules Implemented (Full)
 
-### Module 1 — AI Auto-Category & Tag Generator
+### Module 1 - AI Auto-Category & Tag Generator
 Takes raw product input (name, description, materials, brand, price) and returns:
 - Primary category from a fixed taxonomy (AI must pick from allowed list)
 - Specific sub-category
@@ -18,21 +18,21 @@ Takes raw product input (name, description, materials, brand, price) and returns
 
 The important design decision here: the AI cannot invent new categories or filters. It picks from a hardcoded list. This prevents hallucination from reaching the database. Output is validated against a Zod schema before being returned.
 
-### Module 2 — AI B2B Proposal Generator
+### Module 2 - AI B2B Proposal Generator
 Takes a corporate client brief (budget, industry, use case, recipient count) and returns:
 - Curated product mix from the catalog (by real product IDs)
 - Budget allocation with platform fee and shipping
 - Impact positioning with plastic/CO2 estimates
 - Sales notes for the account team
 
-Key design decision: the AI sees real catalog data. Budget arithmetic is **re-verified in business logic after AI returns** — if the total exceeds the client budget by more than 2%, the request fails rather than returning bad data.
+Key design decision: the AI sees real catalog data. Budget arithmetic is **re-verified in business logic after AI returns**  if the total exceeds the client budget by more than 2%, the request fails rather than returning bad data.
 
 ---
 
 ## Modules Outlined (Architecture)
 
-### Module 3 — AI Impact Reporting
-Environmental impact numbers (plastic saved, CO2 avoided, local sourcing %) are calculated using **deterministic formulas** based on DEFRA emission factors — not AI. AI is used only to generate a human-readable narrative from those numbers. This keeps the figures auditable.
+### Module 3 - AI Impact Reporting
+Environmental impact numbers (plastic saved, CO2 avoided, local sourcing %) are calculated using **deterministic formulas** based on DEFRA emission factors not AI. AI is used only to generate a human-readable narrative from those numbers. This keeps the figures auditable.
 
 ### Module 4 — AI WhatsApp Support Bot
 Order lookups happen against the real database **before** the AI call. The model is given verified order data; it cannot invent tracking numbers or delivery dates. Escalation detection is returned as a structured flag, not free text, so the escalation system is reliable.
@@ -92,15 +92,15 @@ backend/
 
 Every module uses a system prompt with strict constraints:
 
-1. **Output format lock-in** — System prompt says "return ONLY valid JSON" with exact schema. The `parseJSON` utility strips markdown fences in case the model adds them.
+1. **Output format lock-in** - System prompt says "return ONLY valid JSON" with exact schema. The `parseJSON` utility strips markdown fences in case the model adds them.
 
-2. **Controlled vocabularies** — Categories and sustainability filters are listed in the prompt. AI must choose from them, not invent. Business logic re-validates after parsing.
+2. **Controlled vocabularies** - Categories and sustainability filters are listed in the prompt. AI must choose from them, not invent. Business logic re-validates after parsing.
 
-3. **Math verification** — For proposals, budget arithmetic is re-done in Node after AI responds. If the numbers don't add up, the request fails.
+3. **Math verification** - For proposals, budget arithmetic is re-done in Node after AI responds. If the numbers don't add up, the request fails.
 
-4. **Separation of AI and business logic** — AI handles language generation and classification judgement. Calculations (impact metrics, budget totals) stay in regular functions so they're testable and auditable.
+4. **Separation of AI and business logic** - AI handles language generation and classification judgement. Calculations (impact metrics, budget totals) stay in regular functions so they're testable and auditable.
 
-5. **Consistent logging** — Every AI call generates a `requestId` (UUID), logs prompt length, response latency, token usage, and module name to both Winston (files) and would log to MongoDB in production.
+5. **Consistent logging** - Every AI call generates a `requestId` (UUID), logs prompt length, response latency, token usage, and module name to both Winston (files) and would log to MongoDB in production.
 
 ---
 
@@ -126,10 +126,10 @@ npm run dev
 
 See `backend/.env.example` for all required variables. Key ones:
 
-- `ANTHROPIC_API_KEY` — get from console.anthropic.com
-- `PG_*` — PostgreSQL connection (host, port, database, user, password)
-- `MONGO_URI` — MongoDB Atlas connection string for logging
-- `PORT` — defaults to 4000
+- `ANTHROPIC_API_KEY` - get from console.anthropic.com
+- `PG_*` - PostgreSQL connection (host, port, database, user, password)
+- `MONGO_URI` - MongoDB Atlas connection string for logging
+- `PORT` - defaults to 4000
 
 ---
 
@@ -183,10 +183,10 @@ HTTP status codes:
 
 ## What I'd add with more time
 
-The biggest gap right now is the database layer — the product catalog and orders are mocked in-memory, so the next thing I'd do is write the actual PostgreSQL schema and migrations for those, then wire up the services to query real data instead of the hardcoded arrays.
+The biggest gap right now is the database layer- the product catalog and orders are mocked in-memory, so the next thing I'd do is write the actual PostgreSQL schema and migrations for those, then wire up the services to query real data instead of the hardcoded arrays.
 
-For the support bot, the conversation history works within a single session but doesn't persist. I'd add a proper MongoDB `ConversationLog` collection so you can see the full history per customer and track which intents are coming up most often — that's actually useful for improving the prompts over time.
+For the support bot, the conversation history works within a single session but doesn't persist. I'd add a proper MongoDB `ConversationLog` collection so you can see the full history per customer and track which intents are coming up most often- that's actually useful for improving the prompts over time.
 
 On the auth side, the API currently has no authentication at all. For anything going to production that would need JWT middleware at minimum, probably on the proposal and support endpoints first since those touch client data.
 
-The WhatsApp integration is outlined but not wired up — connecting it to the actual Meta/Twilio webhook is mostly plumbing, the AI logic is already there. And I'd add Redis caching on the category endpoint since the same products get classified repeatedly during catalog imports and there's no reason to hit the AI each time for an identical input.
+The WhatsApp integration is outlined but not wired up, connecting it to the actual Meta/Twilio webhook is mostly plumbing, the AI logic is already there. And I'd add Redis caching on the category endpoint since the same products get classified repeatedly during catalog imports and there's no reason to hit the AI each time for an identical input.
