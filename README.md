@@ -1,12 +1,3 @@
-# Rayeva AI Systems — Assignment Submission
-
-**Role:** Full Stack / AI Intern  
-**Focus:** Applied AI for Sustainable Commerce
-
----
-
-## Modules Implemented (Full)
-
 ### Module 1 - AI Auto-Category & Tag Generator
 Takes raw product input (name, description, materials, brand, price) and returns:
 - Primary category from a fixed taxonomy (AI must pick from allowed list)
@@ -34,7 +25,7 @@ Key design decision: the AI sees real catalog data. Budget arithmetic is **re-ve
 ### Module 3 - AI Impact Reporting
 Environmental impact numbers (plastic saved, CO2 avoided, local sourcing %) are calculated using **deterministic formulas** based on DEFRA emission factors not AI. AI is used only to generate a human-readable narrative from those numbers. This keeps the figures auditable.
 
-### Module 4 — AI WhatsApp Support Bot
+### Module 4 - AI WhatsApp Support Bot
 Order lookups happen against the real database **before** the AI call. The model is given verified order data; it cannot invent tracking numbers or delivery dates. Escalation detection is returned as a structured flag, not free text, so the escalation system is reliable.
 
 ---
